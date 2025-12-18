@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2025 SAP SE or an SAP affiliate company and cobaltcore-dev contributors
+# SPDX-License-Identifier: Apache-2.0
+
+name: Validate Prometheus Alerts
+
+on:
+  pull_request:
+    paths: ['greenhouse/chart/alerts/**']
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install promtool
+        run: |
+          wget -q https://github.com/prometheus/prometheus/releases/download/v3.8.0/prometheus-3.8.0.linux-amd64.tar.gz
+          tar xzf prometheus-3.8.0.linux-amd64.tar.gz --strip-components=1 prometheus-3.8.0.linux-amd64/promtool
+          sudo mv promtool /usr/local/bin/
+      
+      - run: promtool check rules greenhouse/chart/alerts/*.yaml
