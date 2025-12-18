@@ -1,0 +1,46 @@
+{{- /*
+  Generate PrometheusRule resources from alerts/*.yaml files.
+  Mirrors the behavior of kvm-monitoring's kvm-alerts.yaml but scoped
+  to the redfish-exporter chart helpers and values.
+*/ -}}
+
+{{- if .Values.prometheusRules.create -}}
+
+{{- $root := . -}}
+{{- $additionalRuleLabels := include "redfish-operations.additionalRuleLabels" $root | trim }}
+{{- $labelsLineRegex := "(?m)^(\\s+labels:\\s*\\n)" }}
+{{- $docStarted := false }}
+
+{{- range $alertPath, $alertRaw := $root.Files.Glob "alerts/*.yaml" }}
+{{- $alertName := base $alertPath }}
+
+{{- if $docStarted }}
+---
+{{- end }}
+{{- $docStarted = true }}
+
+{{- $alertContent := printf "%s" $alertRaw }}
+{{- if $additionalRuleLabels }}
+  {{- $alertContent = regexReplaceAll $labelsLineRegex $alertContent (printf "$1%s\n" ($additionalRuleLabels | indent 6)) }}
+{{- end }}
+
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ printf "%s-%s-alerts" $root.Release.Name (trimSuffix ".yaml" $alertName) | trunc 63 | lower }}
+  labels:
+{{- include "redfish-operations.ruleSelectorLabels" (list $alertPath $root) | indent 4 }}
+{{ include "redfish-exporter.labels" (list $alertPath $root) | indent 4 }}
+{{- with $root.Values.prometheusRules.labels }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+{{- with $root.Values.prometheusRules.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+{{ tpl $alertContent $root | indent 2 }}
+
+{{- end }}
+
+{{- end }}

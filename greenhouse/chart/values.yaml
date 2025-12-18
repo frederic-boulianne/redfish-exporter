@@ -1,6 +1,6 @@
 image:
-  repository: ghcr.io/cobaltcore-dev/redfish-exporter
-  tag: "0.1.0"
+  repository: ghcr.io/sapcc/redfish-exporter
+  tag: "main"
   pullPolicy: IfNotPresent
 
 service:
@@ -41,17 +41,6 @@ prometheusRules:
   annotations: {}
   additionalRuleLabels: {}
   additionalRuleAnnotations: {}
-
-dashboards:
-  create: true
-  dashboardSelectors:
-    - name: plutono-dashboard
-      value: '"true"'
-  global:
-    create: false
-    dashboardSelectors:
-      - name: plutono-global
-        value: '"true"'
 
 persesDashboards:
   create: true

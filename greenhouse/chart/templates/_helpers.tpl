@@ -24,3 +24,18 @@ chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 {{- default "" .Values.serviceAccount.name -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "redfish-operations.additionalRuleLabels" -}}
+{{- with .Values.prometheusRules.additionalRuleLabels }}
+{{ toYaml . }}
+{{- end }}
+{{- end -}}
+
+{{- define "redfish-operations.ruleSelectorLabels" -}}
+{{- $root := index . 1 -}}
+{{- with $root.Values.prometheusRules.ruleSelectors }}
+{{- range $i, $target := . }}
+{{ $target.name | required (printf "$.Values.prometheusRules.ruleSelectors[%v].name missing" $i) }}: {{ tpl ($target.value | required (printf "$.Values.prometheusRules.ruleSelectors[%v].value missing" $i)) $root }}
+{{- end }}
+{{- end }}
+{{- end -}}

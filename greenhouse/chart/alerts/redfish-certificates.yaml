@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2025 SAP SE or an SAP affiliate company and cobaltcore-dev contributors
+# SPDX-License-Identifier: Apache-2.0
+
+groups:
+- name: redfishCertificateAlerts
+  rules:
+  - alert: RedfishCertificateInvalid
+    expr: redfish_certificate_isvalid == 0
+    for: 1h
+    labels:
+      severity: critical
+      type: redfish_exporter
+      playbook: docs/compute/redfish/playbooks/invalid_certificate/
+    annotations:
+      summary: "Redfish target {{`{{ $labels.instance }}`}} has an INVALID certificate"
+      description: "The Redfish endpoint {{`{{ $labels.instance }}`}} reports an invalid or expired certificate (metric `redfish_certificate_isvalid` = 0)."
+
+  - alert: RedfishCertificateSelfSigned
+    expr: redfish_certificate_selfsigned == 1
+    for: 1h
+    labels:
+      severity: warning
+      type: redfish_exporter
+      playbook: docs/compute/redfish/playbooks/selfsigned_certificate/
+    annotations:
+      summary: "Redfish target {{`{{ $labels.instance }}`}} uses a self-signed certificate"
+      description: "The Redfish endpoint {{`{{ $labels.instance }}`}} reports a self-signed certificate (metric `redfish_certificate_selfsigned` = 1)."
