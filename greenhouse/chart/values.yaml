@@ -1,0 +1,60 @@
+image:
+  repository: ghcr.io/cobaltcore-dev/redfish-exporter
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+service:
+  port: 9220
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 250m
+    memory: 128Mi
+
+probes:
+  readiness:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+  liveness:
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+serviceMonitorLabels: {}
+pluginPreset: true
+global:
+  commonLabels: {}
+
+prometheusRules:
+  create: true
+  ruleGroups:
+    exporterHealth: true
+  disabled: {}
+  ruleSelectors: []
+  labels: {}
+  annotations: {}
+  additionalRuleLabels: {}
+  additionalRuleAnnotations: {}
+
+dashboards:
+  create: true
+  dashboardSelectors:
+    - name: plutono-dashboard
+      value: '"true"'
+  global:
+    create: false
+    dashboardSelectors:
+      - name: plutono-global
+        value: '"true"'
+
+persesDashboards:
+  create: true
+  dashboardSelectors:
+    - name: perses.dev/resource
+      value: '"true"'

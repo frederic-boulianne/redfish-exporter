@@ -1,0 +1,48 @@
+apiVersion: greenhouse.sap/v1alpha1
+kind: PluginDefinition
+metadata:
+  name: redfish-exporter
+spec:
+  version: 0.1.0
+  displayName: Redfish Exporter
+  description: Prometheus exporter for extracting metrics from servers via Redfish API.
+  docMarkDownUrl: https://raw.githubusercontent.com/sapcc/redfish-exporter/refs/heads/main/README.md
+  icon: https://raw.githubusercontent.com/sapcc/redfish-exporter/main/logo.png
+  helmChart:
+    name: redfish-exporter
+    repository: oci://ghcr.io/cobaltcore-dev/redfish-exporter/charts
+    version: 0.1.0
+  options:
+    - name: serviceMonitorLabels
+      displayName: Extra Service Monitor Labels
+      description: Extra labels to add to the ServiceMonitor resource.
+      type: map
+      required: true
+    - name: prometheusRules.create
+      description: Create Prometheus rules
+      required: false
+      default: true
+      type: bool
+    - name: prometheusRules.ruleSelectors
+      description: Selector for Prometheus rules to be picked up by the Prometheus operator. List of key-value pairs.
+      required: false
+      type: list
+    - name: prometheusRules.additionalRuleLabels
+      description: Additional labels to be added every Prometheus rule. E.g support_group, service
+      required: false
+      type: map
+    - name: persesDashboards.create
+      description: Create Perses dashboards
+      required: false
+      default: true
+      type: bool
+    - name: dashboards.create
+      description: Create Plutono dashboards
+      required: false
+      default: true
+      type: bool
+    - name: dashboards.global.create
+      description: Create global Plutono dashboards
+      required: false
+      default: false
+      type: bool
