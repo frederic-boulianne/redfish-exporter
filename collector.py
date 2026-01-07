@@ -8,9 +8,11 @@ import requests
 
 from prometheus_client.core import GaugeMetricFamily
 from collectors.performance_collector import PerformanceCollector
+from collectors.bios_collector import BiosCollector
 from collectors.firmware_collector import FirmwareCollector
 from collectors.health_collector import HealthCollector
 from collectors.certificate_collector import CertificateCollector
+from collectors.sensors_collector import SensorsCollector
 
 class RedfishMetricsCollector:
     """Class for collecting Redfish metrics."""
@@ -46,6 +48,7 @@ class RedfishMetricsCollector:
             "PowerSubsystem": "",
             "ThermalSubsystem": "",
             "NetworkInterfaces": "",
+            "Sensors": "",
         }
 
         self.server_health = 0
@@ -166,7 +169,7 @@ class RedfishMetricsCollector:
             )
             self._basic_auth = True
 
-        if result and result.status_code in [200, 201]:
+        if result and result.status_code in [200, 201, 202, 204]:
             self._auth_token = result.headers['X-Auth-Token']
             session_url = result.headers.get('Location')
 
@@ -367,7 +370,7 @@ class RedfishMetricsCollector:
         if not chassis_data:
             return None
 
-        urls = ['PowerSubsystem', 'Power', 'ThermalSubsystem', 'Thermal']
+        urls = ['PowerSubsystem', 'Power', 'ThermalSubsystem', 'Thermal', 'Sensors']
 
         for url in urls:
             if url in chassis_data:
@@ -455,6 +458,12 @@ class RedfishMetricsCollector:
 
             yield metrics.fw_metrics
 
+        # Get the bios settings
+        if self.metrics_type == 'bios':
+            metrics = BiosCollector(self)
+            for metric in metrics.collect():
+                yield metric
+
         # Get the performance information
         if self.metrics_type == 'performance':
             metrics = PerformanceCollector(self)
@@ -462,6 +471,10 @@ class RedfishMetricsCollector:
 
             yield metrics.power_metrics
             yield metrics.temperature_metrics
+
+        if self.metrics_type == 'sensors':
+            metrics = SensorsCollector(self)
+            yield from metrics.collect()
 
         # Finish with calculating the scrape duration
         duration = round(time.time() - self._start_time, 2)
@@ -528,3 +541,4 @@ class RedfishMetricsCollector:
         if self._session:
             logging.info("Target %s: Closing requests session.", self.target)
             self._session.close()
+
