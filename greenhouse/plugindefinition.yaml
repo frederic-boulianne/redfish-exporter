@@ -36,13 +36,3 @@ spec:
       required: false
       default: true
       type: bool
-    - name: dashboards.create
-      description: Create Plutono dashboards
-      required: false
-      default: true
-      type: bool
-    - name: dashboards.global.create
-      description: Create global Plutono dashboards
-      required: false
-      default: false
-      type: bool
