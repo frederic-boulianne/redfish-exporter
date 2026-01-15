@@ -2,18 +2,14 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: {{ include "redfish-exporter.fullname" . }}
-  labels:
-    {{- include "redfish-exporter.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "redfish-exporter.name" . }}
-      app.kubernetes.io/instance: {{ .Release.Name }}
+      app: {{ include "redfish-exporter.fullname" . }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "redfish-exporter.name" . }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
+        app: {{ include "redfish-exporter.fullname" . }}
     spec:
       serviceAccountName: {{ include "redfish-exporter.serviceAccountName" . }}
       containers:
@@ -22,14 +18,64 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
-              name: http
+              name: metrics
           env:
             - name: LISTEN_PORT
-              value: "{{ .Values.service.port }}"
+              value: {{ .Values.service.port }}
+            - name: TIMEOUT
+              value: "5"
+            {{ if .Values.users.redfish_cp_username }}
+            - name: REDFISH_CP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redfish-exporter.fullname" . }}
+                  key: redfish_cp_username
+            - name: REDFISH_CP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redfish-exporter.fullname" . }}
+                  key: redfish_cp_password
+            {{ end }}
+            {{ if .Values.users.redfish_bb_username }}
+            - name: REDFISH_BB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redfish-exporter.fullname" . }}
+                  key: redfish_bb_username
+            - name: REDFISH_BB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redfish-exporter.fullname" . }}
+                  key: redfish_bb_password
+            {{ end }}
+            {{ if .Values.users.redfish_fw_username }}
+            - name: REDFISH_FW_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redfish-exporter.fullname" . }}
+                  key: redfish_fw_username
+            - name: REDFISH_FW_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redfish-exporter.fullname" . }}
+                  key: redfish_fw_password
+            {{ end }}
+            {{ if .Values.users.redfish_perf_username }}
+            - name: REDFISH_PERF_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redfish-exporter.fullname" . }}
+                  key: redfish_perf_username
+            - name: REDFISH_PERF_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redfish-exporter.fullname" . }}
+                  key: redfish_perf_password
+            {{ end }}
           readinessProbe:
             httpGet:
               path: /health
-              port: http
+              port: metrics
             initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
             periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
             timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
@@ -37,12 +83,14 @@ spec:
           livenessProbe:
             httpGet:
               path: /health
-              port: http
+              port: metrics
             initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
             periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
             timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
             failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
           resources:
-{{ toYaml .Values.resources | indent 12 }}
-      tolerations: {{- toYaml .Values.tolerations | nindent 6 | default "[]" }}
-      nodeSelector: {{- toYaml .Values.nodeSelector | nindent 6 | default "{}" }}
+{{ toYaml .Values.resources | nindent 12 }}
+      tolerations:
+    {{ toYaml (default (list) .Values.tolerations) | nindent 8 }}
+      nodeSelector:
+    {{ toYaml (default dict .Values.nodeSelector) | nindent 8 }}

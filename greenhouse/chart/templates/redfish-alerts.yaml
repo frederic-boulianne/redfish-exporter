@@ -1,13 +1,11 @@
-{{- /*
-  Generate PrometheusRule resources from alerts/*.yaml files.
-  Mirrors the behavior of kvm-monitoring's kvm-alerts.yaml but scoped
-  to the redfish-exporter chart helpers and values.
-*/ -}}
+#  Generate PrometheusRule resources from alerts/*.yaml files.
+#  Mirrors the behavior of kvm-monitoring's kvm-alerts.yaml but scoped
+#  to the redfish-exporter chart helpers and values.
 
 {{- if .Values.prometheusRules.create -}}
 
 {{- $root := . -}}
-{{- $additionalRuleLabels := include "redfish-operations.additionalRuleLabels" $root | trim }}
+{{- $additionalRuleLabels := include "kvm-operations.additionalRuleLabels" $root | trim }}
 {{- $labelsLineRegex := "(?m)^(\\s+labels:\\s*\\n)" }}
 {{- $docStarted := false }}
 
@@ -29,8 +27,8 @@ kind: PrometheusRule
 metadata:
   name: {{ printf "%s-%s-alerts" $root.Release.Name (trimSuffix ".yaml" $alertName) | trunc 63 | lower }}
   labels:
-{{- include "redfish-operations.ruleSelectorLabels" (list $alertPath $root) | indent 4 }}
-{{ include "redfish-exporter.labels" (list $alertPath $root) | indent 4 }}
+{{- include "kvm-operations.ruleSelectorLabels" (list $alertPath $root) | indent 4 }}
+{{ include "kvm-operations.labels" (list $alertPath $root) | indent 4 }}
 {{- with $root.Values.prometheusRules.labels }}
 {{ toYaml . | indent 4 }}
 {{- end }}
@@ -42,5 +40,4 @@ spec:
 {{ tpl $alertContent $root | indent 2 }}
 
 {{- end }}
-
 {{- end }}

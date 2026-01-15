@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: {{ include "redfish-exporter.fullname" . }}
   labels:
-    {{- include "redfish-exporter.labels" . | nindent 4 }}
+    app: {{ include "redfish-exporter.fullname" . }}
 spec:
   type: ClusterIP
   ports:

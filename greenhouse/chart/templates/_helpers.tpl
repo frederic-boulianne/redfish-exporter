@@ -10,11 +10,20 @@
 {{- end -}}
 {{- end -}}
 
-{{- define "redfish-exporter.labels" -}}
-app.kubernetes.io/name: {{ include "redfish-exporter.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/managed-by: Helm
-chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+{{/* Generate basic labels */}}
+{{- define "kvm-operations.labels" -}}
+{{- $root := index . 1 -}}
+app.cloud-storage.io/version: {{ $root.Chart.Version }}
+app.cloud-storage.io/part-of: {{ $root.Release.Name }}
+{{- with $root.Values.global.commonLabels }}
+{{ toYaml . }}
+{{- end }}
+{{- end -}}
+
+{{- define "kvm-operations.additionalRuleLabels" -}}
+{{- with .Values.prometheusRules.additionalRuleLabels }}
+{{ toYaml . }}
+{{- end }}
 {{- end -}}
 
 {{- define "redfish-exporter.serviceAccountName" -}}
@@ -25,13 +34,7 @@ chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 {{- end -}}
 {{- end -}}
 
-{{- define "redfish-operations.additionalRuleLabels" -}}
-{{- with .Values.prometheusRules.additionalRuleLabels }}
-{{ toYaml . }}
-{{- end }}
-{{- end -}}
-
-{{- define "redfish-operations.ruleSelectorLabels" -}}
+{{- define "kvm-operations.ruleSelectorLabels" -}}
 {{- $root := index . 1 -}}
 {{- with $root.Values.prometheusRules.ruleSelectors }}
 {{- range $i, $target := . }}
